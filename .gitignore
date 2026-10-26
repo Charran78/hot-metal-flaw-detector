@@ -1,0 +1,11 @@
+# Android Studio and Gradle
+.gradle/
+.idea/
+**/build/
+
+# Local Android SDK path
+local.properties
+
+# Operating system files
+.DS_Store
+Thumbs.db
