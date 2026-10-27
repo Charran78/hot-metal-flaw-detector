@@ -40,4 +40,62 @@ class FrameCoordinatesTest {
         assertEquals(480 to 640, FrameCoordinates.rotatedSize(640, 480, 90))
         assertEquals(480 to 640, FrameCoordinates.rotatedSize(640, 480, 270))
     }
+
+    @Test
+    fun mapsCandidateBoundsUsingFillCenterCrop() {
+        val mapped = FrameCoordinates.mapToView(
+            box,
+            frameWidth = 640,
+            frameHeight = 480,
+            rotationDegrees = 0,
+            viewWidth = 1000,
+            viewHeight = 1000
+        )
+
+        assertEquals(41.6667f, mapped.left, 0.001f)
+        assertEquals(104.1667f, mapped.top, 0.001f)
+        assertEquals(250f, mapped.right, 0.001f)
+        assertEquals(312.5f, mapped.bottom, 0.001f)
+    }
+
+    @Test
+    fun hitTestUsesTheSameRotatedAndCroppedCandidateBounds() {
+        val frame = InspectionFrame(
+            width = 640,
+            height = 480,
+            rotationDegrees = 0,
+            candidates = listOf(box)
+        )
+
+        assertEquals(box, FrameCoordinates.candidateAt(frame, 100f, 200f, 1000, 1000))
+        assertEquals(null, FrameCoordinates.candidateAt(frame, 10f, 200f, 1000, 1000))
+    }
+
+    @Test
+    fun candidateTapAllowsSmallFingerMovement() {
+        assertEquals(
+            true,
+            CandidateTap.remainsWithinTapSlop(
+                downX = 100f,
+                downY = 100f,
+                upX = 118f,
+                upY = 110f,
+                slopPixels = 24f
+            )
+        )
+    }
+
+    @Test
+    fun candidateTapRejectsDraggingAwayFromSelectedBox() {
+        assertEquals(
+            false,
+            CandidateTap.remainsWithinTapSlop(
+                downX = 100f,
+                downY = 100f,
+                upX = 140f,
+                upY = 100f,
+                slopPixels = 24f
+            )
+        )
+    }
 }

@@ -11,8 +11,19 @@ Prototipo Android de inspección visual en tiempo real. CameraX captura la image
 - Procesa fotogramas localmente con CameraX y OpenCV.
 - Descarta fotogramas atrasados para mantener la interfaz receptiva.
 - Indica cuántas regiones candidatas ha encontrado el análisis.
+- Permite tocar una caja candidata para capturar ese fotograma con la región marcada.
+- Abre una ficha para que el técnico confirme el defecto, identifique el producto y registre observaciones y mediciones manuales.
+- Genera un PDF con la evidencia y comparte el PDF junto con la fotografía mediante el selector de Android.
 
 El procesamiento aplica escala de grises, desenfoque Gaussiano, umbral adaptativo y extracción de contornos. Es una heurística visual: **no clasifica** grietas, picaduras, roturas de borde u otras clases de defecto.
+
+## Informe de inspección
+
+El técnico selecciona el tipo de defecto y una recomendación para revisión humana. El informe incluye un identificador único, fecha y hora, referencia del producto, especificaciones disponibles, ubicación manual del hallazgo, observaciones y la imagen capturada.
+
+Se pueden completar manualmente Coil ID o Package ID, código de barras/QR, número de colada, pedido, grado, norma, acabado, peso y dimensiones. El código de barras/QR se introduce como texto; no hay lector integrado ni consulta al ERP.
+
+Las medidas de área y profundidad son opcionales y las aporta el técnico junto con el instrumento utilizado. La app no las calcula a partir de los píxeles. La recomendación no rechaza material ni sustituye la decisión del área de calidad. Al compartir, Android abre el selector del sistema; la app no envía correo automáticamente ni conserva un historial de informes. Los archivos temporales se escriben en el caché privado y solo se entregan a otra aplicación tras la acción explícita de compartir.
 
 ## Requisitos
 
@@ -44,6 +55,7 @@ La app solicita permiso de cámara al iniciarse. Para ver candidatos, apunta a u
 - **OpenCV:** operaciones clásicas de procesamiento de imagen y extracción de contornos.
 - **Kotlin/StateFlow:** estado de la inspección separado de la vista.
 - **Overlay:** dibuja las cajas candidatas y compensa rotación y recorte de la previsualización.
+- **Registro de inspección:** captura asociada al fotograma, validación de datos, PDF local y compartición con `FileProvider`.
 
 Los fotogramas se procesan en el dispositivo. Esta demo no incluye subida de imágenes, modelos de aprendizaje automático, medición en milímetros ni integración con sistemas industriales.
 
@@ -63,4 +75,7 @@ app/src/main/java/.../
   DetectionOverlayView.kt     Superposición visual
   InspectionModels.kt         Modelos de estado y coordenadas
   InspectionViewModel.kt      Estado observable de la inspección
+  InspectionReport.kt         Catálogo, informe y validación de la ficha
+  InspectionReportFormDialog.kt Formulario manual para el técnico
+  InspectionReportExporter.kt PDF y fotografía para compartir
 ```

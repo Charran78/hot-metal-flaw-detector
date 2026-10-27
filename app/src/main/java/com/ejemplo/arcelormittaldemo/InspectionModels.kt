@@ -19,6 +19,8 @@ data class InspectionUiState(
     val cameraReady: Boolean = false,
     val torchAvailable: Boolean = false,
     val torchEnabled: Boolean = false,
+    val captureInProgress: Boolean = false,
+    val evidence: CapturedEvidence? = null,
     val message: String = ""
 )
 
@@ -61,9 +63,68 @@ object FrameCoordinates {
         }
     }
 
+    fun mapToView(
+        box: CandidateBox,
+        frameWidth: Int,
+        frameHeight: Int,
+        rotationDegrees: Int,
+        viewWidth: Int,
+        viewHeight: Int
+    ): CandidateBox {
+        require(viewWidth > 0 && viewHeight > 0)
+        val (rotatedWidth, rotatedHeight) = rotatedSize(
+            frameWidth,
+            frameHeight,
+            rotationDegrees
+        )
+        val scale = maxOf(viewWidth.toFloat() / rotatedWidth, viewHeight.toFloat() / rotatedHeight)
+        val horizontalOffset = (viewWidth - rotatedWidth * scale) / 2f
+        val verticalOffset = (viewHeight - rotatedHeight * scale) / 2f
+        val rotated = rotate(box, frameWidth, frameHeight, rotationDegrees)
+        return CandidateBox(
+            left = horizontalOffset + rotated.left * scale,
+            top = verticalOffset + rotated.top * scale,
+            right = horizontalOffset + rotated.right * scale,
+            bottom = verticalOffset + rotated.bottom * scale
+        )
+    }
+
+    fun candidateAt(
+        frame: InspectionFrame,
+        x: Float,
+        y: Float,
+        viewWidth: Int,
+        viewHeight: Int
+    ): CandidateBox? = frame.candidates.firstOrNull { candidate ->
+        val mapped = mapToView(
+            candidate,
+            frame.width,
+            frame.height,
+            frame.rotationDegrees,
+            viewWidth,
+            viewHeight
+        )
+        x >= mapped.left && x <= mapped.right && y >= mapped.top && y <= mapped.bottom
+    }
+
     private fun normalizeRotation(rotationDegrees: Int): Int {
         val normalized = (rotationDegrees % 360 + 360) % 360
         require(normalized == 0 || normalized == 90 || normalized == 180 || normalized == 270)
         return normalized
+    }
+}
+
+object CandidateTap {
+    fun remainsWithinTapSlop(
+        downX: Float,
+        downY: Float,
+        upX: Float,
+        upY: Float,
+        slopPixels: Float
+    ): Boolean {
+        require(slopPixels >= 0f)
+        val deltaX = upX - downX
+        val deltaY = upY - downY
+        return deltaX * deltaX + deltaY * deltaY <= slopPixels * slopPixels
     }
 }

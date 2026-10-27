@@ -26,8 +26,37 @@ class InspectionViewModel : ViewModel() {
             it.copy(
                 cameraReady = false,
                 torchEnabled = false,
+                captureInProgress = false,
                 frame = null,
+                evidence = null,
                 message = message
+            )
+        }
+    }
+
+    fun captureStarted() {
+        mutableState.update {
+            it.copy(captureInProgress = true, evidence = null, message = "")
+        }
+    }
+
+    fun captureCompleted(evidence: CapturedEvidence) {
+        mutableState.update {
+            it.copy(captureInProgress = false, evidence = evidence, message = "")
+        }
+    }
+
+    fun captureFailed(message: String) {
+        mutableState.update {
+            it.copy(captureInProgress = false, message = message)
+        }
+    }
+
+    fun clearEvidence() {
+        mutableState.update {
+            it.copy(
+                captureInProgress = false,
+                evidence = null
             )
         }
     }
